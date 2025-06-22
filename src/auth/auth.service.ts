@@ -4,19 +4,7 @@ import { JwtService } from '@nestjs/jwt';
 import { InjectRepository } from '@nestjs/typeorm';
 import { User } from 'src/user/entities/user.entity';
 import { Repository } from 'typeorm';
-
-const fakeUsers = [
-    {
-    id: 1,
-    username: 'alper',
-    password: 'password',
-    },
-    {
-    id: 2,
-    username: 'hasan',
-    password: 'password123',
-    }
-]
+import { UserService } from 'src/user/user.service';
 
 @Injectable()
 export class AuthService {
@@ -25,6 +13,7 @@ export class AuthService {
         private jwtService: JwtService,
         @InjectRepository(User)
         private usersRepository: Repository<User>,
+        private userService: UserService,
     ){
 
     }
@@ -36,7 +25,9 @@ export class AuthService {
 
     if (!user) return null;
 
-    if (user.password === password) {
+    const isPasswordValid = await this.userService.validatePassword(password, user.password);
+    
+    if (isPasswordValid) {
       const { password, ...result } = user;
       return {
         accessToken: this.jwtService.sign(result),
